@@ -7,7 +7,7 @@ import { Telegraf, session } from "telegraf"
 const BOT_TOKEN = "8431553291:AAHSsOuvebj9GRnzuf0PotpCtthAwDYMWYM"
 const VERCEL_URL = "https://file-uploader-bot-rust.vercel.app"
 const FIREBASE_DB_URL = "https://nilay-database-default-rtdb.firebaseio.com"
-const ADMIN_ID = "8101892262"
+const ADMIN_ID = "6761595092"
 
 const bot = new Telegraf(BOT_TOKEN)
 const app = express()
