@@ -4,10 +4,10 @@ import { randomBytes } from "crypto"
 import bodyParser from "body-parser"
 import { Telegraf, session } from "telegraf"
 
-const BOT_TOKEN = "BOT_TOKEN"
-const VERCEL_URL = "VERCEL_URL"
-const FIREBASE_DB_URL = "DATABASE_URL"
-const ADMIN_ID = "USERID"
+const BOT_TOKEN = "8431553291:AAHSsOuvebj9GRnzuf0PotpCtthAwDYMWYM"
+const VERCEL_URL = "https://file-uploader-bot-rust.vercel.app"
+const FIREBASE_DB_URL = "https://nilay-database-default-rtdb.firebaseio.com"
+const ADMIN_ID = "8101892262"
 
 const bot = new Telegraf(BOT_TOKEN)
 const app = express()
