@@ -92,6 +92,155 @@ bot.on("message", async (ctx, next) => {
   }
 });
 
+// ===== UTIL =====
+function escapeHtml(text) {
+  if (typeof text !== "string") return String(text ?? "");
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// ===== /insta COMMAND =====
+bot.command("insta", async (ctx) => {
+  try {
+    const text = ctx.message.text || "";
+    const parts = text.split(/\s+/).filter(Boolean);
+    const username = parts[1];
+    if (!username) {
+      return ctx.replyWithHTML(
+        "<b>Usage:</b> <code>/insta username</code>",
+        { reply_to_message_id: ctx.message.message_id }
+      );
+    }
+
+    const apiUrl = `https://gamigo-admin-api.vercel.app/insta?username=${encodeURIComponent(username)}`;
+    const { data } = await axios.get(apiUrl, { timeout: 12000 });
+
+    const msg = [
+      `<b>Instagram Profile</b>`,
+      `👤 <b>Username:</b> <code>${escapeHtml(data.username)}</code>`,
+      `🧾 <b>Full Name:</b> ${escapeHtml(data.full_name ?? "-")}`,
+      `📝 <b>Bio:</b> ${escapeHtml(data.bio ?? "-")}`,
+      `📦 <b>Posts:</b> ${Number(data.posts ?? 0)}`,
+      `👥 <b>Followers:</b> ${Number(data.followers ?? 0)}`,
+      `👤 <b>Following:</b> ${Number(data.following ?? 0)}`,
+      `🔒 <b>Private:</b> ${data.private ? "Yes" : "No"}`,
+      `✔️ <b>Verified:</b> ${data.verified ? "Yes" : "No"}`
+    ].join("\n");
+
+    await ctx.replyWithHTML(msg, { reply_to_message_id: ctx.message.message_id });
+  } catch (e) {
+    await ctx.replyWithHTML(
+      `❌ <b>Failed to fetch profile:</b> <code>${escapeHtml(e.message)}</code>`,
+      { reply_to_message_id: ctx.message.message_id }
+    );
+  }
+});
+
+// ===== /ai COMMAND (AI + Insta in one message) =====
+bot.command("ai", async (ctx) => {
+  try {
+    const text = ctx.message.text || "";
+    const question = text.replace(/^\/ai\s*/i, "").trim();
+    if (!question) {
+      return ctx.replyWithHTML(
+        "<b>Usage:</b> <code>/ai your question here</code>",
+        { reply_to_message_id: ctx.message.message_id }
+      );
+    }
+
+    const aiUrl = `https://princeaiapi.vercel.app/prince/api/v1/ask?key=prince&ask=${encodeURIComponent(question)}`;
+    const instaUsername = "im_.nilay._";
+    const instaUrl = `https://gamigo-admin-api.vercel.app/insta?username=${encodeURIComponent(instaUsername)}`;
+
+    const [aiRes, instaRes] = await Promise.all([
+      axios.get(aiUrl, { timeout: 20000 }).catch((err) => ({ error: err })),
+      axios.get(instaUrl, { timeout: 12000 }).catch((err) => ({ error: err }))
+    ]);
+
+    let aiMessage = "";
+    if (!aiRes || aiRes.error) {
+      aiMessage = `❌ Failed to get AI response: ${escapeHtml(aiRes?.error?.message || "unknown error")}`;
+    } else {
+      const aiData = aiRes.data || {};
+      aiMessage = aiData?.message?.content || aiData?.answer || JSON.stringify(aiData);
+    }
+
+    let instaMessage = "";
+    if (!instaRes || instaRes.error) {
+      instaMessage = `❌ Failed to fetch Instagram profile: ${escapeHtml(instaRes?.error?.message || "unknown error")}`;
+    } else {
+      const d = instaRes.data || {};
+      instaMessage = [
+        `👤 <b>Username:</b> <code>${escapeHtml(d.username)}</code>`,
+        `🧾 <b>Full Name:</b> ${escapeHtml(d.full_name ?? "-")}`,
+        `📝 <b>Bio:</b> ${escapeHtml(d.bio ?? "-")}`,
+        `📦 <b>Posts:</b> ${Number(d.posts ?? 0)}`,
+        `👥 <b>Followers:</b> ${Number(d.followers ?? 0)}`,
+        `👤 <b>Following:</b> ${Number(d.following ?? 0)}`,
+        `🔒 <b>Private:</b> ${d.private ? "Yes" : "No"}`,
+        `✔️ <b>Verified:</b> ${d.verified ? "Yes" : "No"}`
+      ].join("\n");
+    }
+
+    const combined = [
+      `<b>🤖 AI Response</b>`,
+      escapeHtml(aiMessage),
+      "",
+      `<b>📸 Instagram Profile (${escapeHtml(instaUsername)})</b>`,
+      instaMessage
+    ].join("\n");
+
+    await ctx.replyWithHTML(combined, { reply_to_message_id: ctx.message.message_id });
+  } catch (e) {
+    await ctx.replyWithHTML(
+      `❌ <b>Failed:</b> <code>${escapeHtml(e.message)}</code>`,
+      { reply_to_message_id: ctx.message.message_id }
+    );
+  }
+});
+
+// ===== /like COMMAND =====
+bot.command("like", async (ctx) => {
+  try {
+    // Prefer reacting to the replied message; otherwise, show usage
+    const replied = ctx.message.reply_to_message;
+    if (!replied) {
+      return ctx.replyWithHTML(
+        "<b>Usage:</b> Reply to a message and send <code>/like</code> to react ❤️",
+        { reply_to_message_id: ctx.message.message_id }
+      );
+    }
+
+    const chatId = ctx.chat.id;
+    const messageId = replied.message_id;
+
+    // Try Telegram Bot API setMessageReaction (may not be available on older bot API versions)
+    try {
+      await bot.telegram.callApi("setMessageReaction", {
+        chat_id: chatId,
+        message_id: messageId,
+        reaction: [{ type: "emoji", emoji: "❤️" }],
+        is_big: true
+      });
+      await ctx.replyWithHTML("❤️ <b>Liked</b>", { reply_to_message_id: replied.message_id });
+      return;
+    } catch {
+      // Fallback: send a simple heart reply if reactions are not supported
+      await ctx.reply("❤️", { reply_to_message_id: replied.message_id });
+      return;
+    }
+  } catch (e) {
+    await ctx.replyWithHTML(
+      `❌ <b>Failed to like:</b> <code>${escapeHtml(e.message)}</code>`,
+      { reply_to_message_id: ctx.message.message_id }
+    );
+  }
+});
+
 // ===== FILE HANDLER (supports >30MB) =====
 bot.on(["document", "video", "photo", "sticker", "animation"], async (ctx) => {
   let file_id, file_name;
