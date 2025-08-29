@@ -5,7 +5,7 @@ import bodyParser from "body-parser"
 import { Telegraf, session } from "telegraf"
 
 const BOT_TOKEN = "8431553291:AAHj59trVuy8jTeV3pX0LXNxzq1ZhHSmacc"
-const VERCEL_URL = "https://file-uploader-bot-ten.vercel.app/"
+const VERCEL_URL = "https://file-uploader-bot-sigma.vercel.app"
 const FIREBASE_DB_URL = "https://nilay-database-default-rtdb.firebaseio.com"
 const ADMIN_ID = "6761595092"
 
