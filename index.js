@@ -4,8 +4,8 @@ import { randomBytes } from "crypto"
 import bodyParser from "body-parser"
 import { Telegraf, session } from "telegraf"
 
-const BOT_TOKEN = "8431553291:AAHSsOuvebj9GRnzuf0PotpCtthAwDYMWYM"
-const VERCEL_URL = "https://68b1ab8c2c50b0b9de835e8c--lucent-raindrop-f4241e.netlify.app/"
+const BOT_TOKEN = "8431553291:AAHj59trVuy8jTeV3pX0LXNxzq1ZhHSmacc"
+const VERCEL_URL = "https://file-uploader-bot-ten.vercel.app/"
 const FIREBASE_DB_URL = "https://nilay-database-default-rtdb.firebaseio.com"
 const ADMIN_ID = "6761595092"
 
